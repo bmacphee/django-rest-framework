@@ -752,20 +752,24 @@ class CharField(Field):
         self.max_length = kwargs.pop('max_length', None)
         self.min_length = kwargs.pop('min_length', None)
         super(CharField, self).__init__(**kwargs)
-        if self.max_length is not None:
-            message = lazy(
-                self.error_messages['max_length'].format,
-                six.text_type)(max_length=self.max_length)
-            self.validators.append(
-                MaxLengthValidator(self.max_length, message=message))
-        if self.min_length is not None:
-            message = lazy(
-                self.error_messages['min_length'].format,
-                six.text_type)(min_length=self.min_length)
-            self.validators.append(
-                MinLengthValidator(self.min_length, message=message))
+        self._appended_validators = False
 
     def run_validation(self, data=empty):
+        if not self._appended_validators:
+            self._appended_validators = True
+            if self.max_length is not None:
+                message = lazy(
+                    self.error_messages['max_length'].format,
+                    six.text_type)(max_length=self.max_length)
+                self.validators.append(
+                    MaxLengthValidator(self.max_length, message=message))
+            if self.min_length is not None:
+                message = lazy(
+                    self.error_messages['min_length'].format,
+                    six.text_type)(min_length=self.min_length)
+                self.validators.append(
+                    MinLengthValidator(self.min_length, message=message))
+
         # Test for the empty string here so that it does not get validated,
         # and so that subclasses do not need to handle it explicitly
         # inside the `to_internal_value()` method.
@@ -917,18 +921,24 @@ class IntegerField(Field):
         self.max_value = kwargs.pop('max_value', None)
         self.min_value = kwargs.pop('min_value', None)
         super(IntegerField, self).__init__(**kwargs)
-        if self.max_value is not None:
-            message = lazy(
-                self.error_messages['max_value'].format,
-                six.text_type)(max_value=self.max_value)
-            self.validators.append(
-                MaxValueValidator(self.max_value, message=message))
-        if self.min_value is not None:
-            message = lazy(
-                self.error_messages['min_value'].format,
-                six.text_type)(min_value=self.min_value)
-            self.validators.append(
-                MinValueValidator(self.min_value, message=message))
+        self._appended_validators = False
+
+    def run_validation(self, data=empty):
+        if not self._appended_validators:
+            self._appended_validators = True
+            if self.max_value is not None:
+                message = lazy(
+                    self.error_messages['max_value'].format,
+                    six.text_type)(max_value=self.max_value)
+                self.validators.append(
+                    MaxValueValidator(self.max_value, message=message))
+            if self.min_value is not None:
+                message = lazy(
+                    self.error_messages['min_value'].format,
+                    six.text_type)(min_value=self.min_value)
+                self.validators.append(
+                    MinValueValidator(self.min_value, message=message))
+        return super().run_validation(data)
 
     def to_internal_value(self, data):
         if isinstance(data, six.text_type) and len(data) > self.MAX_STRING_LENGTH:
@@ -957,18 +967,24 @@ class FloatField(Field):
         self.max_value = kwargs.pop('max_value', None)
         self.min_value = kwargs.pop('min_value', None)
         super(FloatField, self).__init__(**kwargs)
-        if self.max_value is not None:
-            message = lazy(
-                self.error_messages['max_value'].format,
-                six.text_type)(max_value=self.max_value)
-            self.validators.append(
-                MaxValueValidator(self.max_value, message=message))
-        if self.min_value is not None:
-            message = lazy(
-                self.error_messages['min_value'].format,
-                six.text_type)(min_value=self.min_value)
-            self.validators.append(
-                MinValueValidator(self.min_value, message=message))
+        self._appended_validators = False
+
+    def run_validation(self, data=empty):
+        if not self._appended_validators:
+            self._appended_validators = True
+            if self.max_value is not None:
+                message = lazy(
+                    self.error_messages['max_value'].format,
+                    six.text_type)(max_value=self.max_value)
+                self.validators.append(
+                    MaxValueValidator(self.max_value, message=message))
+            if self.min_value is not None:
+                message = lazy(
+                    self.error_messages['min_value'].format,
+                    six.text_type)(min_value=self.min_value)
+                self.validators.append(
+                    MinValueValidator(self.min_value, message=message))
+        return super().run_validation(data)
 
     def to_internal_value(self, data):
 
@@ -1015,25 +1031,24 @@ class DecimalField(Field):
             self.max_whole_digits = None
 
         super(DecimalField, self).__init__(**kwargs)
+        self._appended_validators = False
 
-        if self.max_value is not None:
-            message = lazy(
-                self.error_messages['max_value'].format,
-                six.text_type)(max_value=self.max_value)
-            self.validators.append(
-                MaxValueValidator(self.max_value, message=message))
-        if self.min_value is not None:
-            message = lazy(
-                self.error_messages['min_value'].format,
-                six.text_type)(min_value=self.min_value)
-            self.validators.append(
-                MinValueValidator(self.min_value, message=message))
-
-        if rounding is not None:
-            valid_roundings = [v for k, v in vars(decimal).items() if k.startswith('ROUND_')]
-            assert rounding in valid_roundings, (
-                'Invalid rounding option %s. Valid values for rounding are: %s' % (rounding, valid_roundings))
-        self.rounding = rounding
+    def run_validation(self, data=empty):
+        if not self._appended_validators:
+            self._appended_validators = True
+            if self.max_value is not None:
+                message = lazy(
+                    self.error_messages['max_value'].format,
+                    six.text_type)(max_value=self.max_value)
+                self.validators.append(
+                    MaxValueValidator(self.max_value, message=message))
+            if self.min_value is not None:
+                message = lazy(
+                    self.error_messages['min_value'].format,
+                    six.text_type)(min_value=self.min_value)
+                self.validators.append(
+                    MinValueValidator(self.min_value, message=message))
+        return super().run_validation(data)
 
     def to_internal_value(self, data):
         """
@@ -1833,12 +1848,18 @@ class ModelField(Field):
         # so we'd better support it here.
         max_length = kwargs.pop('max_length', None)
         super(ModelField, self).__init__(**kwargs)
-        if max_length is not None:
-            message = lazy(
-                self.error_messages['max_length'].format,
-                six.text_type)(max_length=self.max_length)
-            self.validators.append(
-                MaxLengthValidator(self.max_length, message=message))
+        self._appended_validators = False
+
+    def run_validation(self, data=empty):
+        if not self._appended_validators:
+            self._appended_validators = True
+            if max_length is not None:
+                message = lazy(
+                    self.error_messages['max_length'].format,
+                    six.text_type)(max_length=self.max_length)
+                self.validators.append(
+                    MaxLengthValidator(self.max_length, message=message))
+        return super().run_validation(data)
 
     def to_internal_value(self, data):
         rel = self.model_field.remote_field
